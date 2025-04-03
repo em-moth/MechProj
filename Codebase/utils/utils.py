@@ -24,7 +24,6 @@ def get_TLE_data(norad_id):
         return {'info': {'satid': 25544, 'satname': 'SPACE STATION', 'transactionscount': 3}, 'tle': '1 25544U 98067A   25085.46276703  .00029905  00000-0  52819-3 0  9998\r\n2 25544  51.6371 356.7528 0003651  53.2985 306.8339 15.50092829502334'}
     return get_data_dict(f"/tle/{norad_id}")
 
-#'tle': '1 25544U 98067A     25085.46276703  .00029905  00000-0  52819-3 0  9998\r\n2 25544  51.6371 356.7528 0003651  53.2985 306.8339 15.50092829502334'
 #Function to decode a TLE
 def decode_TLE(tle):
     data_dict = {}
@@ -69,9 +68,7 @@ def decode_TLE(tle):
 
     data_dict["line_2_checksum"] = int(line_2[68])
 
-    print(data_dict)
-
-    return
+    return data_dict
 
 #convert scientific notation string to float
 def sci_to_float(str):

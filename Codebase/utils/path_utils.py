@@ -21,7 +21,7 @@ def obtain_keplerian_elements(TLE):
     #Find the semimajor axis
     #semimajor_axis = (((period ** 2) * grav_parameter_earth)/(4 * (math.pi ** 2))) ** (1/3)
     # Convert mean motion from revs/day to rad/s
-    MM_rad_s = TLE['mean_motion'] * (2 * math.pi / 86400)
+    #MM_rad_s = TLE['mean_motion'] * (2 * math.pi / 86400)
 
     # Gravitational parameter for Earth (m^3/s^2)
     grav_parameter_earth = 3.986004418e14
@@ -30,29 +30,8 @@ def obtain_keplerian_elements(TLE):
     semimajor_axis= (grav_parameter_earth / (MM_rad_s ** 2)) ** (1 / 3)
 
     print(semimajor_axis)
-    #Obtain true anomaly
-
-    ME_rad_s = TLE['mean_anomaly'] * (math.pi / 180)
-
-    E_k = ME_rad_s
-    E_k_plus_1 = ME_rad_s + TLE['eccentricity'] * math.sin(E_k)
-
-    while (abs((E_k_plus_1-E_k)/E_k_plus_1) > 0.001):
-        E_k = E_k_plus_1
-        E_k_plus_1 = ME_rad_s + TLE['eccentricity'] * math.sin(E_k)
-
-    true_anomaly = math.acos((math.cos(E_k_plus_1)-TLE["eccentricity"])/(1 - TLE["eccentricity"]*math.cos(E_k_plus_1)))
-
-
-    # Step 3: Compute true anomaly using atan2 (preserving quadrant)
-    true_anomaly = 2 * math.atan2(
-        math.sqrt(1 + TLE['eccentricity']) * math.sin(E_k_plus_1 / 2),
-        math.sqrt(1 - TLE['eccentricity']) * math.cos(E_k_plus_1 / 2)
-    )
-
-    # Normalize to [0, 2π] if needed
-    if true_anomaly < 0:
-        true_anomaly += 2 * math.pi
+    
+    true_anomaly = get_true_anomaly(TLE["mean_anomaly"], TLE["mean_motion"], TLE["eccentricity"], 0)
         
     print(true_anomaly)
     kepler_elements = {}
@@ -65,3 +44,33 @@ def obtain_keplerian_elements(TLE):
     return kepler_elements
 
 
+def get_true_anomaly(mean_anomaly, mean_motion, eccentricity, time_minutes):
+    #Obtain true anomaly
+
+    # Convert mean anomaly from degrees to radians
+    mean_anomaly_rad = math.radians(mean_anomaly)
+    
+    # Convert mean motion from revs/day to rad/s
+    mean_motion_rad_s = mean_motion * (2 * math.pi / 86400)
+    
+    # Propagate mean anomaly over time (convert minutes to seconds)
+    time_seconds = time_minutes * 60  # <--- Convert minutes to seconds
+    propagated_mean_anomaly = (mean_anomaly_rad + mean_motion_rad_s * time_seconds) % (2 * math.pi)
+    E_k = propagated_mean_anomaly
+    E_k_plus_1 = propagated_mean_anomaly + eccentricity * math.sin(E_k)
+
+    while (abs((E_k_plus_1-E_k)/E_k_plus_1) > 0.001):
+        E_k = E_k_plus_1
+        E_k_plus_1 = propagated_mean_anomaly + eccentricity * math.sin(E_k)
+
+    # Step 3: Compute true anomaly using atan2 (preserving quadrant)
+    true_anomaly = 2 * math.atan2(
+        math.sqrt(1 + eccentricity) * math.sin(E_k_plus_1 / 2),
+        math.sqrt(1 - eccentricity) * math.cos(E_k_plus_1 / 2)
+    )
+
+    # Normalize to [0, 2π] if needed
+    if true_anomaly < 0:
+        true_anomaly += 2 * math.pi
+
+    return true_anomaly

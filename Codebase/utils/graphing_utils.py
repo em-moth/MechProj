@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from utils.utils import perifocal_to_equatorial
+from utils.utils import perifocal_to_equatorial, propagate_elements, kepler_elements_to_coords
 
 
 def twoD_kepler_graph(kepler_elements):
@@ -99,10 +99,28 @@ def graph_orbit(ax, kepler_elements):
     z_rotated = equatorial_eq[2]
 
     ax.scatter(x_v_rotated, y_v_rotated, z_v_rotated, c='r', marker='o') 
-    ax.plot(x_rotated, y_rotated, z_rotated)
     
+    ax.plot(x_rotated, y_rotated, z_rotated, label='Kepler prediction')
+    
+    
+def get_position_array_kepler(kepler_elements, t):
+    samples = len(t)
+    p_x = np.empty(samples, dtype=float)
+    p_y = np.empty(samples, dtype=float)
+    p_z = np.empty(samples, dtype=float)
+    
+    for i in range(samples):
+        elements = propagate_elements(kepler_elements, t[i])
+        x, y, z =kepler_elements_to_coords(elements)
+        p_x[i] = x
+        p_y[i] = y
+        p_z[i] = z
+
+    return (p_x, p_y, p_z)
+
     
 
+    
 
 
 #[ 4647.8511381  -3306.80826047 -3699.45697685]

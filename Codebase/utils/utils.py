@@ -1,4 +1,4 @@
-from .constants import API_KEY_NY2GO
+from utils.constants import API_KEY_NY2GO
 import requests
 import json
 from astropy.coordinates import ITRS, GCRS, CartesianRepresentation, CartesianDifferential

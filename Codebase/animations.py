@@ -9,7 +9,8 @@ class CreateCircle(Scene):
         self.play(Create(ax))
         self.wait(3)
 
-class PolarPlaneExample(MovingCameraScene):
+class ThreeDExample(MovingCameraScene):
     def construct(self):
+        axes = ThreeDAxes()
         
         

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-#ELE stands for keplerian elements
+
 def sgp4(ELE, t):
     deg2rad = np.pi / 180
     #extract elements from TLE
@@ -60,20 +60,6 @@ def sgp4(ELE, t):
     naa_0 = n_0 / (1 + delta_0)
 
     aaa_0 = a_0 / (1- delta_0)
-
-    
-    #r_perigee_ER = aaa_0 * (1 - e_0) - a_E_ER  # Now in ER
-    #r_perigee_km = r_perigee_ER * XKMPER  # Convert to km
-    #print(r_perigee_km)
-    #QOS = (q_0 - s) ** 4
-    #if 98 < r_perigee_km < 156:
-    #    s_star = aaa_0 * (1 - e_0) - s + a_E_ER
-    #    QOS = (QOS ** (1/4) + s - s_star) ** 4
-    #    s = s_star
-    #if 0 < r_perigee_km < 98:
-    #    s_star = 20/XKMPER + a_E_ER
-    #    QOS = (QOS ** (1/4) + s - s_star) ** 4
-    #    s = s_star
 
     r_perigee_km = (aaa_0*(1.0 - e_0) - a_E_ER) * XKMPER  # km
     s = a_E_ER
@@ -144,8 +130,6 @@ def sgp4(ELE, t):
         a = aaa_0 * (1 - C1 * t - D2 * t ** 2 - D3 * t **3 - D4 * t **4) ** 2
 
         L = M_P + omega + Omega + naa_0 * ( (3/2) * C1 * t ** 2 + (D2 + 2 * C1 **2) * t ** 3 + (1/4) * (3 * D3 + 12 * C1 *D2 + 10 * C1  ** 3) * t **4 + (1/5) * (3 * D4 + 12 * C1 * D3 + 6*D2 **2 + 30 * C1 **2 * D2 + 15 * C1 ** 4) * t ** 5 )
-
-
     
     beta = np.sqrt(1 - e ** 2)
 
@@ -166,7 +150,7 @@ def sgp4(ELE, t):
     EW = U
     EW_next = EW + (U - a_yN * np.cos(EW) + a_xN * np.sin(EW) - EW)/(-1 * a_yN * np.sin(EW) - a_xN * np.cos(EW) + 1)
     
-    while np.abs(EW_next - EW) > 1e-6:
+    while np.abs(EW_next - EW) > 1e-12:
         EW = EW_next
         EW_next = EW + (U - a_yN * np.cos(EW) + a_xN * np.sin(EW) - EW)/(-1 * a_yN * np.sin(EW) - a_xN * np.cos(EW) + 1)
     
@@ -190,7 +174,6 @@ def sgp4(ELE, t):
 
     sinu = (a/r) * (np.sin(EW) - a_yN - (a_xN * esinE)/(1 + np.sqrt(1-e_L ** 2)))
 
-    #u = np.arctan(sinu/cosu)
     u = np.arctan2(sinu, cosu)
 
     Deltar = (k_2)/(2*p_L) * (1 - theta **2) * np.cos(2 * u)
@@ -226,7 +209,6 @@ def sgp4(ELE, t):
     U_vec = M_vec * np.sin(u_k) + N_vec * np.cos(u_k)
     V_vec = M_vec * np.cos(u_k) - N_vec * np.sin(u_k)
 
-    
     position = r_k * U_vec * XKMPER
     velocity = (rdot_k * U_vec + rfdot_k * V_vec) * XKMPER / 60
 
@@ -249,14 +231,16 @@ def test_sgp4():
         "drag_term": 6.6816e-05              # 0.66816e-4 from "66816-4" (line 1, field 6)
     }
     # Time since epoch in minutes
-    t_minutes = 0
+    for t_minutes in range(0, 1440+360, 360):
 
-    # Run SGP4
-    position_vector = sgp4(ELE, t_minutes)
+        # Run SGP4
+        position_vector, velocity_vector = sgp4(ELE, t_minutes)
 
-    # Output result
-    print("Position vector (km):")
-    #print(position_vector.flatten())
+        # Output result
+        print(f"{t_minutes} - Position vector (km):")
+        print(position_vector.flatten())
+        print(f"{t_minutes} - Velocity vector (km/min):")
+        print(velocity_vector.flatten())
 
     
 
